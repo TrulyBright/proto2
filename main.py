@@ -1,10 +1,21 @@
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
-from game import Game
+from fastapi.middleware.cors import CORSMiddleware
+from game import Game, Player
 
 app = FastAPI()
 
-games: dict[int, Game] = {}
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+game = Game(6)
 
 async def streamer(game: Game):
     """게임의 상태가 바뀔 때마다 스트리밍합니다."""
@@ -12,43 +23,24 @@ async def streamer(game: Game):
         yield game.state()
         await game.state_changed.wait()
 
-@app.get("/{game_id}/watch")
-async def watch(game_id: int):
-    if game_id not in games:
-        return {"error": "Game not found"}
-    game = games[game_id]
+@app.get("/watch")
+async def watch():
     return StreamingResponse(streamer(game))
 
-@app.post("/create")
-async def create():
-    game_id = games.keys()[-1] + 1 if games else 0
-    games[game_id] = Game()
-    return game_id
+@app.post("/join")
+async def join(name: str):
+    """게임에 플레이어를 추가합니다."""
+    joining = Player(game.players[-1].index + 1 if game.players else 0, name)
+    try:
+        game.add_player(joining)
+    except ValueError as e:
+        return {"error": str(e)}
+    return joining.json()
 
-@app.post("/{game_id}/join")
-async def join(game_id: int, name: str):
-    if game_id not in games:
-        return {"error": "Game not found"}
-    game = games[game_id]
-
-@app.post("/{game_id}/{player_id}/move")
-async def move(game_id: int, player_id: int, x: int, y: int):
-    if game_id not in games:
-        return {"error": "Game not found"}
-    game = games[game_id]
-    player = game.get_player(player_id)
-    if player is None:
-        return {"error": "Player not found"}
-    if not player.alive:
-        return {"error": "Player is not alive"}
-    if not game.move(player, x, y):
-        return {"error": "Invalid move"}
-    return game.state()
-
-@app.post("/{game_id}/{player_id}/build")
-async def build(game_id: int, x: int, y: int):
-    raise NotImplementedError("Build function is not implemented yet.")
-
-@app.post("/{game_id}/{player_id}/shoot")
-async def shoot(game_id: int, x: int, y: int):
-    raise NotImplementedError("Shoot function is not implemented yet.")
+@app.post("/start")
+async def start():
+    """게임을 시작합니다."""
+    if game.ongoing:
+        return {"error": "Game is already ongoing"}
+    game.start()
+    return {"message": "Game started"}

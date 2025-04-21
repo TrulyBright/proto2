@@ -31,17 +31,15 @@ class Player:
         }
 
 class Game:
-    def __init__(self, players: list[Player], R: int = 6):
+    def __init__(self, R: int = 6):
         """한 변의 길이가 R인 정육각형 게임판을 생성합니다."""
         if R < 3:
             raise ValueError("R must be at least 3")
-        if len(players) not in {3, 4, 5, 6}:
-            raise ValueError("Number of players must be between 3 and 6")
-        self.players = players
         self.board = [None for _ in range(R * 2 - 1)]
         for i in range(R):
             self.board[i] = [None for _ in range(R + i)]
             self.board[R * 2 - 2 - i] = [None for _ in range(R + i)]
+        self.players: list[Player] = []
         self.R = R
         self.turn = 0
         self.ongoing = False
@@ -52,7 +50,7 @@ class Game:
     def state(self):
         return {
             "board": [[item.json() if isinstance(item, Player) else item for item in row] for row in self.board],
-            "players": [player.json() for player in self.players],
+            "players": [p.json() for p in self.players],
             "turn": self.turn,
             "ongoing": self.ongoing,
             "time": self.time
