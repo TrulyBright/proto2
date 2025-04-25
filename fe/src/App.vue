@@ -15,17 +15,17 @@ const tileWidth = 32
 const board = ref<(PlayerData | null)[][]>([])
 
 board.value = [
-  [null, null, null, null, null, null],
+  [{}, null, null, null, null, {}],
   [null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null, null, null, null],
+  [{}, null, null, null, null, null, null, null, null, null, {}],
   [null, null, null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null],
-  [null, null, null, null, null, null],
+  [{}, null, null, null, null, {}],
 ]
 
 onMounted(() => {
@@ -45,8 +45,9 @@ const maxRowLength = computed(() =>
 )
 
 // horizontal offset so each row is centered
-const rowOffset = (row: (PlayerData | null)[]) =>
-  (maxRowLength.value - row.length) * (tileWidth / 2)
+const rowOffset = computed(() => {
+  return (maxRowLength.value - rows.value.length) * tileWidth
+})
 </script>
 
 <template>
@@ -56,7 +57,7 @@ const rowOffset = (row: (PlayerData | null)[]) =>
         class="board-row"
         v-for="(row, rowIndex) in rows"
         :key="rowIndex"
-        :style="{ marginLeft: rowOffset(rowIndex) + 'px' }"
+        :style="{ marginLeft: `${rowOffset}px` }"
       >
         <div
           v-for="(tile, colIndex) in row"
@@ -69,6 +70,7 @@ const rowOffset = (row: (PlayerData | null)[]) =>
             style="z-index: -1;"
           />
           <SpriteViewer
+            v-if="tile !== null && typeof tile === 'object'"
             spriteSheet="/Idle.png"
             :spriteIndex="0"
             :spriteWidth="48"

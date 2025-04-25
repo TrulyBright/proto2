@@ -12,8 +12,12 @@ const props = defineProps<{
     onAnimationEnd: () => void
 }>()
 
-const endingPosition = computed(() => {
-    return -props.spriteWidth * props.frameCount
+const startingY = computed(() => {
+    return props.spriteHeight * props.spriteIndex
+})
+
+const endingX = computed(() => {
+    return props.spriteWidth * (props.frameCount - 1)
 })
 </script>
 
@@ -23,16 +27,7 @@ const endingPosition = computed(() => {
         width: `${spriteWidth}px`,
         height: `${spriteHeight}px`,
         animation: `play ${duration}ms steps(${frameCount}) ${loop ? 'infinite' : 'forwards'}`,
-    }"></div>
+    }">
+    </div>
 </template>
 
-<style>
-@keyframes play {
-    from {
-        background-position: 0 0;
-    }
-    to {
-        background-position: 384px 0;
-    }
-}
-</style>
