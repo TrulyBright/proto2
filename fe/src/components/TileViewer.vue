@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
+
 defineProps<{
     spriteSheet: string
     spriteIndex: number
@@ -6,15 +8,25 @@ defineProps<{
 
 const spriteWidth = 32
 const spriteHeight = 32
+const isHovered = ref(false)
+
+const currentSpriteIndex = computed(() => {
+    return isHovered.value ? 4 : 3 // Toggle between sprite indices 3 and 4
+})
 </script>
 
 <template>
-    <div class="sprite-container" :style="{
-        backgroundImage: `url(${spriteSheet})`,
-        backgroundPosition: `0px -${spriteIndex * spriteHeight}px`,
-        width: `${spriteWidth}px`,
-        height: `${spriteHeight}px`,
-    }"></div>
+    <div 
+        class="sprite-container" 
+        :style="{
+            backgroundImage: `url(${spriteSheet})`,
+            backgroundPosition: `0px -${currentSpriteIndex * spriteHeight}px`,
+            width: `${spriteWidth}px`,
+            height: `${spriteHeight}px`,
+        }"
+        @mouseover="isHovered = true"
+        @mouseleave="isHovered = false"
+    ></div>
 </template>
 
 <style scoped>
@@ -23,5 +35,6 @@ const spriteHeight = 32
     overflow: hidden;
     width: 32px;
     height: 32px;
+    cursor: pointer;
 }
 </style>
